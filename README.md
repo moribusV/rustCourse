@@ -1,1 +1,1 @@
-# rustCourse
+Repository cleaned
