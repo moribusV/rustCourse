@@ -4,9 +4,17 @@ use std::io::stdin;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let available_options = vec![
+        "lowercase",
+        "uppercase",
+        "no-spaces",
+        "slugify",
+        "trim",
+        "repeat",
+    ];
 
     if args.len() != 2 {
-        println!("Wrong CLI arguments input. Terminating...");
+        println!("Wrong CLI arguments input. Should be 1 argument. \nYou can choose from: {:?} \nTerminating...", available_options);
         std::process::exit(1);
     }
 
@@ -27,7 +35,8 @@ fn main() {
         _ => {
             eprintln!(
                 "Error: Entered option for the conversion doesn't match any existing case.\
-            Available options: lowercase uppercase no-spaces slugify trim repeat"
+            \nAvailable options: {:?}",
+                available_options
             );
             std::process::exit(1);
         }
