@@ -5,8 +5,8 @@ use std::io::stdin;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() == 1 {
-        println!("Haven't received CLI arguments. Terminating...");
+    if args.len() != 2 {
+        println!("Wrong CLI arguments input. Terminating...");
         std::process::exit(1);
     }
 
@@ -24,8 +24,14 @@ fn main() {
         "slugify" => slugify(line),
         "trim" => String::from(line.trim()),
         "repeat" => line.repeat(3),
-        _ => String::from("Entered option for the conversion doesn't match any existing case."),
+        _ => {
+            eprintln!(
+                "Error: Entered option for the conversion doesn't match any existing case.\
+            Available options: lowercase uppercase no-spaces slugify trim repeat"
+            );
+            std::process::exit(1);
+        }
     };
 
-    println!("String after conversion: {}", converted_str);
+    println!("String after conversion: \n{converted_str}");
 }
