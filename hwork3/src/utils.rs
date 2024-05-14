@@ -14,7 +14,7 @@ fn parse_arg(valid_opt: &Vec<&str>, user_opt: &str) -> Result<String, Box<dyn Er
 }
 
 fn is_valid(stdin: &str) -> bool {
-    !stdin.is_empty()
+    !stdin.trim().is_empty()
 }
 fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
     println!("In parser input");

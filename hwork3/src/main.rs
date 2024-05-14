@@ -17,6 +17,14 @@ fn main() {
         "repeat",
     ];
 
+    let res_option = match parse_and_validate_option(&args, &valid_options) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("Invalid input. Error: {e}. Terminating...");
+            panic!("Parsing and validation of program argument not passed.");
+        }
+    };
+
     println!("Enter text to be transformed:");
     println!("{}", args.len());
     let mut input = String::new();
@@ -27,14 +35,6 @@ fn main() {
         Err(e) => {
             eprintln!("User input error {}", e);
             panic!("Cannot proceed. Input error.");
-        }
-    };
-
-    let res_option = match parse_and_validate_option(&args, &valid_options) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Invalid input. Error: {e}. Terminating...");
-            panic!("Parsing and validation of program argument not passed.");
         }
     };
 
