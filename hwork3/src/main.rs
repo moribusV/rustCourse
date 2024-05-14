@@ -1,6 +1,6 @@
 mod utils;
 
-use std::{env, io};
+use std::{env, io, io::Read};
 
 use utils::transform_str;
 
@@ -19,14 +19,14 @@ fn main() {
 
     println!("Enter text to be transformed:");
     println!("{}", args.len());
-    let stdin = match io::read_to_string(io::stdin()) {
-        Ok(user_in) => {
-            println!("User text input: {}", user_in);
-            user_in
+    let mut input = String::new();
+    match io::stdin().read_to_string(&mut input) {
+        Ok(_) => {
+            println!("User text input: {}", input);
         }
         Err(e) => {
             eprintln!("User input error {}", e);
-            "Default string! Lets give it more chance.".to_string()
+            panic!("Cannot proceed. Input error.");
         }
     };
 
@@ -38,7 +38,7 @@ fn main() {
         }
     };
 
-    match transform_str(&stdin, res_option.as_str()) {
+    match transform_str(&input, res_option.as_str()) {
         Ok(converted_str) => println!("{converted_str}"),
         Err(e) => eprintln!("{e}"),
     }
