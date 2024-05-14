@@ -21,7 +21,7 @@ fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
     match args.len() {
         2 => Ok(args[1].clone()),
         1 => Err("Program requires 1 command line argument. You have entered 0.".into()),
-        _ => Err("More then 1 command line argument enteres. Only 1 is required.".into()),
+        _ => Err("More then 1 command line argument entered. Only 1 is required.".into()),
     }
 }
 
