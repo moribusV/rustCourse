@@ -20,7 +20,7 @@ pub fn parse_csv(input: &String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize)]
 struct Row {
     row: Vec<String>,
     width: usize,
