@@ -17,7 +17,6 @@ fn is_valid(stdin: &str) -> bool {
     !stdin.trim().is_empty()
 }
 fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
-    println!("In parser input");
     match args.len() {
         2 => Ok(args[1].clone()),
         1 => Err("Program requires 1 command line argument. You have entered 0.".into()),

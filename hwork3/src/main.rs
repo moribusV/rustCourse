@@ -1,10 +1,11 @@
+mod csv_parser;
 mod utils;
 
 use std::{env, io, io::Read};
 
 use utils::transform_str;
 
-use crate::utils::parse_and_validate_option;
+use crate::{csv_parser::parse_csv, utils::parse_and_validate_option};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,31 +16,36 @@ fn main() {
         "slugify",
         "trim",
         "repeat",
+        "csv",
     ];
 
     let res_option = match parse_and_validate_option(&args, &valid_options) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Invalid input. Error: {e}. Terminating...");
-            panic!("Parsing and validation of program argument not passed.");
+            std::process::exit(1);
         }
     };
 
     println!("Enter text to be transformed:");
-    println!("{}", args.len());
     let mut input = String::new();
+
     match io::stdin().read_to_string(&mut input) {
         Ok(_) => {
-            println!("User text input: {}", input);
+            println!("\nUser text input: \n{}\n\n", input);
         }
         Err(e) => {
-            eprintln!("User input error {}", e);
-            panic!("Cannot proceed. Input error.");
+            eprintln!("User input error: \n{}", e);
+            std::process::exit(1);
         }
     };
 
-    match transform_str(&input, res_option.as_str()) {
-        Ok(converted_str) => println!("{converted_str}"),
-        Err(e) => eprintln!("{e}"),
+    if res_option.as_str() != "csv" {
+        match transform_str(&input, res_option.as_str()) {
+            Ok(converted_str) => println!("{converted_str}"),
+            Err(e) => eprintln!("{e}"),
+        }
+    } else {
+        let _ = parse_csv(&input);
     }
 }
