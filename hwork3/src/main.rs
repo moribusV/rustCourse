@@ -1,11 +1,9 @@
 mod csv_parser;
 mod utils;
 
-use std::{env, io, io::Read};
-
-use utils::transform_str;
-
 use crate::{csv_parser::parse_csv, utils::parse_and_validate_option};
+use std::{env, io, io::Read};
+use utils::transform_str;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -46,6 +44,9 @@ fn main() {
             Err(e) => eprintln!("{e}"),
         }
     } else {
-        let _ = parse_csv(&input);
+        match parse_csv(&input) {
+            Ok(_) => println!("Time to enjoy csv table :)"),
+            Err(e) => eprintln!("{e}"),
+        }
     }
 }

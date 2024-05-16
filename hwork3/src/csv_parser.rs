@@ -1,23 +1,27 @@
+use crate::utils::is_valid;
 use regex::Regex;
 use serde::Deserialize;
 use std::error::Error;
 use std::fmt;
 
 pub fn parse_csv(input: &String) -> Result<(), Box<dyn Error>> {
-    let mut item = Row {
-        row: Vec::new(),
-        width: len_of_longest_word(input),
-    };
-    // println!("{}", item.width);
-    let mut rdr = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .from_reader(input.as_bytes());
-
-    for line in rdr.deserialize() {
-        item.row = line?;
-        println!("{item}");
+    if is_valid(input) {
+        let mut item = Row {
+            row: Vec::new(),
+            width: len_of_longest_word(input),
+        };
+        // println!("{}", item.width);
+        let mut rdr = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .from_reader(input.as_bytes());
+        for line in rdr.deserialize() {
+            item.row = line?;
+            println!("{item}");
+        }
+        Ok(())
+    } else {
+        Err("Empty string was passed. Cannot parse csv.".into())
     }
-    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
@@ -29,7 +33,7 @@ struct Row {
 impl fmt::Display for Row {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let rows = &self.row;
-        let mut horizon_sep = String::new();
+        let mut _horizon_sep = String::new();
         let mut counter = 0;
 
         for v in rows.iter() {
@@ -37,9 +41,9 @@ impl fmt::Display for Row {
             counter += 1;
         }
 
-        horizon_sep = "-".repeat(self.width * counter + (counter * 2));
+        _horizon_sep = "-".repeat(self.width * counter + (counter * 2));
 
-        write!(f, "\n{}", horizon_sep)?;
+        write!(f, "\n{}", _horizon_sep)?;
 
         write!(f, "")
     }
