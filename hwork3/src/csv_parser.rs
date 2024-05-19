@@ -3,29 +3,30 @@ use regex::Regex;
 use serde::Deserialize;
 use std::error::Error;
 use std::fmt;
+use std::fmt::Write;
 
-pub fn parse_csv(input: &String) -> Result<(), Box<dyn Error>> {
+pub fn parse_csv(input: &String) -> Result<String, Box<dyn Error>> {
     if is_valid(input) {
         let mut item = Row {
             row: Vec::new(),
             width: len_of_longest_word(input),
         };
-        // println!("{}", item.width);
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(false)
             .from_reader(input.as_bytes());
+        let mut rows: String = String::new();
         for line in rdr.deserialize() {
             item.row = line?;
-            println!("{item}");
+            writeln!(rows, "{}", item)?;
         }
-        Ok(())
+        Ok(rows)
     } else {
         Err("Empty string was passed. Cannot parse csv.".into())
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct Row {
+#[derive(Debug, Deserialize, Clone)]
+pub struct Row {
     row: Vec<String>,
     width: usize,
 }

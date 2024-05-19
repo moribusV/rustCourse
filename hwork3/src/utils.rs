@@ -1,7 +1,18 @@
 use slug::slugify;
 use std::{error::Error, io::stdin};
+use crate::csv_parser::parse_csv;
 
-fn parse_arg(valid_opt: &Vec<&str>, user_opt: &str) -> Result<String, Box<dyn Error>> {
+const VALID_OPTIONS: [&str; 7] = [
+    "lowercase",
+    "uppercase",
+    "no-spaces",
+    "slugify",
+    "trim",
+    "repeat",
+    "csv",
+];
+
+fn parse_arg(valid_opt: &[&str], user_opt: &str) -> Result<String, Box<dyn Error>> {
     if valid_opt.contains(&user_opt) {
         Ok(user_opt.to_string())
     } else {
@@ -25,12 +36,9 @@ fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
     }
 }
 
-pub fn parse_and_validate_option(
-    args: &[String],
-    valid_opt: &Vec<&str>,
-) -> Result<String, Box<dyn Error>> {
+pub fn parse_and_validate_option(args: &[String]) -> Result<String, Box<dyn Error>> {
     let res_arg = parse_user_input(args)?;
-    parse_arg(valid_opt, &res_arg)
+    parse_arg(&VALID_OPTIONS, &res_arg)
 }
 
 fn lowercase(init_string: &str) -> Result<String, Box<dyn Error>> {
@@ -99,6 +107,7 @@ pub fn transform_str(stdin: &String, option: &str) -> Result<String, Box<dyn Err
         "slugify" => slugify_conversion(stdin),
         "trim" => trim_conversion(stdin),
         "repeat" => repeat(stdin),
+        "csv" => parse_csv(stdin),
         _ => Err("Unexpected parameter.".into()),
     }
 }
