@@ -1,5 +1,5 @@
 mod csv_parser;
-mod interactive_mode;
+mod direct_mode;
 mod tasks;
 mod utils;
 
@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use interactive_mode::interactive_version;
+use direct_mode::direct_version;
 use std::env;
 use std::sync::mpsc;
 use tasks::{task1, task2};
@@ -23,7 +23,7 @@ fn main() {
 
         let stop_flag1 = stop_flag.clone();
         let handle1 = thread::spawn(move || {
-            task1(tx,rx_repeat, stop_flag1);
+            task1(tx, rx_repeat, stop_flag1);
         });
 
         let stop_flag2 = stop_flag.clone();
@@ -46,6 +46,6 @@ fn main() {
         handle1.join().unwrap();
         handle2.join().unwrap();
     } else {
-        interactive_version(&args);
+        direct_version(&args);
     }
 }

@@ -1,7 +1,7 @@
 use crate::utils::{parse_user_input, transform_str};
 use std::{io, io::Read};
 
-pub fn interactive_version(args: &[String]) {
+pub fn direct_version(args: &[String]) {
     let res_option = match parse_user_input(args) {
         Ok(s) => s,
         Err(e) => {
