@@ -1,15 +1,17 @@
-use crate::utils::{parse_continuous_input, transform_str};
-use std::sync::atomic::{AtomicBool, Ordering};
+use crate::utils::{parse_continuous_input, transform_str, Options};
 use std::sync::mpsc::{self};
-use std::sync::Arc;
 use std::{io, io::Read};
 
-pub fn task1(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>, stop_flag: Arc<AtomicBool>) {
+pub fn task1(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>) {
     let mut input = String::new(); // initially string containes command and input separated by whitespace
     let mut msg = Vec::new();
-    while !stop_flag.load(Ordering::SeqCst) {
+    loop {
         msg.clear();
-        println!("Enter <command> <input>:");
+        println!(
+            "Available commands:\n{}",
+            Options::valid_options().join(" / ")
+        );
+        println!("Enter <command> <input>  (to end input press ctrl-d):");
 
         let command = io::stdin()
             .read_to_string(&mut input)
@@ -39,8 +41,8 @@ pub fn task1(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>, stop_flag:
     }
 }
 
-pub fn task2(rx: mpsc::Receiver<Vec<String>>, tx: mpsc::Sender<bool>, stop_flag: Arc<AtomicBool>) {
-    while !stop_flag.load(Ordering::SeqCst) {
+pub fn task2(rx: mpsc::Receiver<Vec<String>>, tx: mpsc::Sender<bool>) {
+    loop {
         let result = match rx.recv() {
             Ok(val) => val,
             Err(e) => {
@@ -56,13 +58,13 @@ pub fn task2(rx: mpsc::Receiver<Vec<String>>, tx: mpsc::Sender<bool>, stop_flag:
             Ok(converted_str) => {
                 println!("Converted string:");
                 println!("{converted_str}\n");
-
-                if let Err(e) = tx.send(true) {
-                    eprintln!("{e}");
-                    std::process::exit(1);
-                }
             }
             Err(e) => eprintln!("{e}"),
+        }
+
+        if let Err(e) = tx.send(true) {
+            eprintln!("{e}");
+            std::process::exit(1);
         }
     }
 }

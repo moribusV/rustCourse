@@ -3,7 +3,7 @@ use core::fmt;
 use slug::slugify;
 use std::{error::Error, io::stdin, str::FromStr};
 
-enum Options {
+pub enum Options {
     LowerCase,
     UpperCase,
     NoSpaces,
@@ -14,7 +14,7 @@ enum Options {
 }
 
 impl Options {
-    fn valid_options() -> &'static [&'static str] {
+    pub fn valid_options() -> &'static [&'static str] {
         &[
             "lowercase",
             "uppercase",
@@ -38,7 +38,7 @@ impl FromStr for Options {
             "repeat" => Ok(Options::Repeat),
             "csv" => Ok(Options::Csv),
             _ => Err(OptionParseErr::InvalidOption(format!(
-                "Entered option isn't valid. \nAvailable options: {}",
+                "\nEntered option isn't valid. \nAvailable options: {}",
                 Options::valid_options().join(" / ")
             ))),
         }
@@ -46,7 +46,7 @@ impl FromStr for Options {
 }
 
 #[derive(Debug)]
-enum OptionParseErr {
+pub enum OptionParseErr {
     InvalidOption(String),
 }
 impl Error for OptionParseErr {}
@@ -84,15 +84,15 @@ pub fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
 pub fn parse_continuous_input(input: &mut String) -> Result<String, Box<dyn Error>> {
     let input_cp = input.clone();
     let mut parts = input_cp.trim().splitn(2, ' ');
-    let command = parts.next().ok_or(InputErr("<command> is missed."))?;
+    let command = parts.next().ok_or(InputErr("\n<command> is missed."))?;
     if !Options::valid_options().contains(&command) {
         return Err(OptionParseErr::InvalidOption(format!(
-            "Entered option isn't valid. \nAvailable options: {}",
+            "\nEntered option isn't valid. \nAvailable options: {}",
             Options::valid_options().join(" / ")
         ))
         .into());
     }
-    let text = parts.next().ok_or(InputErr("<input> is missed."))?;
+    let text = parts.next().ok_or(InputErr("\n<input> is missed."))?;
     input.clear();
     input.push_str(text);
     Ok(command.to_string())
