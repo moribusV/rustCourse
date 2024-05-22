@@ -38,7 +38,7 @@ impl FromStr for Options {
             "repeat" => Ok(Options::Repeat),
             "csv" => Ok(Options::Csv),
             _ => Err(OptionParseErr::InvalidOption(format!(
-                "Entered option isn't valid. \n Available options: {}",
+                "Entered option isn't valid. \nAvailable options: {}",
                 Options::valid_options().join(" / ")
             ))),
         }
@@ -58,6 +58,16 @@ impl fmt::Display for OptionParseErr {
     }
 }
 
+#[derive(Debug)]
+struct InputErr(&'static str);
+
+impl fmt::Display for InputErr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for InputErr {}
 
 pub fn is_valid(stdin: &str) -> bool {
     !stdin.trim().is_empty()
@@ -71,6 +81,22 @@ pub fn parse_user_input(args: &[String]) -> Result<String, Box<dyn Error>> {
     }
 }
 
+pub fn parse_continuous_input(input: &mut String) -> Result<String, Box<dyn Error>> {
+    let input_cp = input.clone();
+    let mut parts = input_cp.trim().splitn(2, ' ');
+    let command = parts.next().ok_or(InputErr("<command> is missed."))?;
+    if !Options::valid_options().contains(&command) {
+        return Err(OptionParseErr::InvalidOption(format!(
+            "Entered option isn't valid. \nAvailable options: {}",
+            Options::valid_options().join(" / ")
+        ))
+        .into());
+    }
+    let text = parts.next().ok_or(InputErr("<input> is missed."))?;
+    input.clear();
+    input.push_str(text);
+    Ok(command.to_string())
+}
 
 fn lowercase(init_string: &str) -> Result<String, Box<dyn Error>> {
     if is_valid(init_string) {
@@ -114,7 +140,7 @@ fn trim_conversion(init_string: &str) -> Result<String, Box<dyn Error>> {
 
 fn repeat(init_string: &str) -> Result<String, Box<dyn Error>> {
     if is_valid(init_string) {
-        println!("Enter number of repatitions (integer number in range 1 to 15):");
+        println!("Enter number of repetitions (integer number in range 1 to 15):");
         let mut num = String::new();
         stdin().read_line(&mut num)?;
 

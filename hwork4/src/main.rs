@@ -1,36 +1,51 @@
 mod csv_parser;
+mod interactive_mode;
+mod tasks;
 mod utils;
 
-use crate::utils::parse_user_input;
-use std::{env, io, io::Read};
-use utils::transform_str;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
+
+use interactive_mode::interactive_version;
+use std::env;
+use std::sync::mpsc;
+use tasks::{task1, task2};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let res_option = match parse_user_input(&args) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Invalid input. Error: {e}. Terminating...");
-            std::process::exit(1);
-        }
-    };
+    if args.len() == 1 {
+        let stop_flag = Arc::new(AtomicBool::new(false));
+        let (tx, rx) = mpsc::channel();
+        let (tx_repeat, rx_repeat) = mpsc::channel();
 
-    println!("Enter text to be transformed:");
-    let mut input = String::new();
+        let stop_flag1 = stop_flag.clone();
+        let handle1 = thread::spawn(move || {
+            task1(tx,rx_repeat, stop_flag1);
+        });
 
-    match io::stdin().read_to_string(&mut input) {
-        Ok(_) => {
-            println!("\nUser text input: \n{}\n\n", input);
-        }
-        Err(e) => {
-            eprintln!("User input error: \n{}", e);
-            std::process::exit(1);
-        }
-    };
+        let stop_flag2 = stop_flag.clone();
+        let handle2 = thread::spawn(move || {
+            task2(rx, tx_repeat, stop_flag2);
+        });
 
-    match transform_str(&input, res_option.as_str()) {
-        Ok(converted_str) => println!("{converted_str}"),
-        Err(e) => eprintln!("{e}"),
+        {
+            let stop_flag = stop_flag.clone();
+            ctrlc::set_handler(move || {
+                stop_flag.store(true, Ordering::SeqCst);
+            })
+            .expect("Err setting handler");
+        }
+
+        while !stop_flag.load(Ordering::SeqCst) {
+            thread::sleep(Duration::from_secs(1));
+        }
+
+        handle1.join().unwrap();
+        handle2.join().unwrap();
+    } else {
+        interactive_version(&args);
     }
 }
