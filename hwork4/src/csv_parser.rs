@@ -4,16 +4,22 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Write;
+use std::fs::File;
+use std::io::Read;
 
-pub fn parse_csv(input: &String) -> Result<String, Box<dyn Error>> {
-    if is_valid(input) {
+pub fn parse_csv() -> Result<String, Box<dyn Error>> {
+    let mut file = File::open("src/data.csv")?;
+    let mut content = String::new();
+    file.read_to_string(&mut content)?;
+    //println!("{}", content);
+    if is_valid(content.as_str()) {
         let mut item = Row {
             row: Vec::new(),
-            width: len_of_longest_word(input),
+            width: len_of_longest_word(content.as_str()),
         };
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(false)
-            .from_reader(input.as_bytes());
+            .from_reader(content.as_bytes());
         let mut rows: String = String::new();
         for line in rdr.deserialize() {
             item.row = line?;

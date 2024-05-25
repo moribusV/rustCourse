@@ -2,7 +2,7 @@ use crate::utils::{parse_continuous_input, transform_str, Options};
 use std::sync::mpsc::{self};
 use std::{io, io::Read};
 
-pub fn task1(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>) {
+pub fn receive_input(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>) {
     let mut input = String::new(); // initially string containes command and input separated by whitespace
     let mut msg = Vec::new();
     loop {
@@ -41,7 +41,7 @@ pub fn task1(tx: mpsc::Sender<Vec<String>>, rx: mpsc::Receiver<bool>) {
     }
 }
 
-pub fn task2(rx: mpsc::Receiver<Vec<String>>, tx: mpsc::Sender<bool>) {
+pub fn process_input(rx: mpsc::Receiver<Vec<String>>, tx: mpsc::Sender<bool>) {
     loop {
         let result = match rx.recv() {
             Ok(val) => val,

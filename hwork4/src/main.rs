@@ -8,7 +8,7 @@ use std::thread;
 use direct_mode::direct_version;
 use std::env;
 use std::sync::mpsc;
-use tasks::{task1, task2};
+use tasks::{process_input, receive_input};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -17,16 +17,16 @@ fn main() {
         let (tx, rx) = mpsc::channel();
         let (tx_repeat, rx_repeat) = mpsc::channel();
 
-        let handle1 = thread::spawn(move || {
-            task1(tx, rx_repeat);
+        let receive_input_handler = thread::spawn(move || {
+            receive_input(tx, rx_repeat);
         });
 
-        let handle2 = thread::spawn(move || {
-            task2(rx, tx_repeat);
+        let process_input_handler = thread::spawn(move || {
+            process_input(rx, tx_repeat);
         });
 
-        handle1.join().unwrap();
-        handle2.join().unwrap();
+        receive_input_handler.join().unwrap();
+        process_input_handler.join().unwrap();
     } else {
         direct_version(&args);
     }

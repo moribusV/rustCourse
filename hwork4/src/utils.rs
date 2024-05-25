@@ -92,9 +92,11 @@ pub fn parse_continuous_input(input: &mut String) -> Result<String, Box<dyn Erro
         ))
         .into());
     }
-    let text = parts.next().ok_or(InputErr("\n<input> is missed."))?;
-    input.clear();
-    input.push_str(text);
+    if command != "csv" {
+        let text = parts.next().ok_or(InputErr("\n<input> is missed."))?;
+        input.clear();
+        input.push_str(text);
+    }
     Ok(command.to_string())
 }
 
@@ -165,6 +167,6 @@ pub fn transform_str(stdin: &String, option: &str) -> Result<String, Box<dyn Err
         Options::Slugify => slugify_conversion(stdin),
         Options::Trim => trim_conversion(stdin),
         Options::Repeat => repeat(stdin),
-        Options::Csv => parse_csv(stdin),
+        Options::Csv => parse_csv(),
     }
 }
