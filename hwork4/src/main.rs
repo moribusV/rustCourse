@@ -2,12 +2,10 @@ mod csv_parser;
 mod direct_mode;
 mod tasks;
 mod utils;
-
-use std::thread;
-
 use direct_mode::direct_version;
 use std::env;
 use std::sync::mpsc;
+use std::thread;
 use tasks::{process_input, receive_input};
 
 fn main() {
