@@ -1,4 +1,3 @@
-// types.rs
 use bincode::{deserialize, serialize};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::error::Error;
