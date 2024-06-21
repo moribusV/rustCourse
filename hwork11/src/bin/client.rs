@@ -1,5 +1,7 @@
 use clap::Parser;
+use hwork11::{parse_inputt, parse_socket_addr, send_message, MessageType};
 use std::error::Error;
+use std::net::SocketAddr;
 use std::net::TcpStream;
 use std::thread;
 
@@ -7,15 +9,11 @@ use std::thread;
 mod client_utils;
 use client_utils::handle_server;
 
-#[path = "../shared.rs"]
-mod shared;
-use crate::shared::{parse_inputt, send_message, MessageType};
-
 /// Client configuration
 #[derive(Parser)]
 struct Config {
-    #[arg(short, long, default_value = "127.0.0.1:11111")]
-    address: String,
+    #[arg(short, long, default_value = "127.0.0.1:11111", value_parser = parse_socket_addr)]
+    address: SocketAddr,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

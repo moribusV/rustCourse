@@ -1,13 +1,14 @@
-use std::net::TcpStream;
-use std::io::Write;
+use chrono::Local;
+use hwork11::{receive_message, ResponseType};
+use image::{load_from_memory, ImageFormat};
 use log::info;
 use std::error::Error;
-use chrono::Local;
-use image::{load_from_memory, ImageFormat};
-use std::path::Path;
 use std::fs::{self, File};
+use std::io::Write;
+use std::net::TcpStream;
+use std::path::Path;
 
-use crate::shared::{ResponseType, receive_message};
+//use crate::shared::{ResponseType, receive_message};
 
 pub fn handle_server(mut stream: TcpStream) -> Result<(), Box<dyn Error>> {
     loop {
@@ -19,18 +20,18 @@ pub fn handle_server(mut stream: TcpStream) -> Result<(), Box<dyn Error>> {
             ResponseType::File(name, content) => {
                 println!("Received file with name: {name}");
                 save_file(&name, &content)?;
-            },
+            }
             ResponseType::Image(name, img) => {
                 println!("Received image with name: {name}");
                 save_image(&img)?;
-            },
+            }
             ResponseType::Text(msg) => {
                 println!("Server: {}", msg);
-            },
+            }
             ResponseType::Quit(addr) => {
                 println!("{} has disconnected", addr);
                 break;
-            },
+            }
         }
     }
 

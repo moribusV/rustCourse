@@ -1,5 +1,6 @@
 use clap::Parser;
 use env_logger::Builder;
+use hwork11::{parse_socket_addr, ResponseType};
 use log::{error, info, LevelFilter};
 use std::collections::HashMap;
 use std::error::Error;
@@ -8,10 +9,6 @@ use std::net::{SocketAddr, TcpListener};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 
-#[path = "../shared.rs"]
-mod shared;
-use crate::shared::ResponseType;
-
 #[path = "../server_utils.rs"]
 mod server_utils;
 use crate::server_utils::{broadcast_response, handle_client, Clients};
@@ -19,8 +16,8 @@ use crate::server_utils::{broadcast_response, handle_client, Clients};
 /// Server configuration
 #[derive(Parser)]
 struct Config {
-    #[arg(short, long, default_value = "127.0.0.1:11111")]
-    address: String,
+    #[arg(short, long, default_value = "127.0.0.1:11111", value_parser = parse_socket_addr)]
+    address: SocketAddr,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -37,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         })
         .init();
     let config = Config::parse();
-    let listener = TcpListener::bind(&config.address)?;
+    let listener = TcpListener::bind(config.address)?;
     info!("Server running on {}", config.address);
 
     let clients: Clients = Arc::new(Mutex::new(HashMap::new()));
