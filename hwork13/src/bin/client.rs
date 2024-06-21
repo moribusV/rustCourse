@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     thread::spawn({
         let stream = stream
             .try_clone()
-            .context("Failed to cteate TcpSteam handle copy.")?;
+            .context("Failed to create TCP stream handle copy.")?;
         move || {
             if let Err(e) = handle_server(stream) {
                 error!("Error receiving from server: {:?}", e);
