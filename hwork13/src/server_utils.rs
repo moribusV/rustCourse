@@ -60,7 +60,7 @@ pub fn broadcast_response(response: ResponseType, clients: Clients) {
 
 fn handle_file(path: &str) -> Result<ResponseType> {
     let file_name = get_file_name(path).context("Failed to get file name")?;
-    let contents = read_file(path).context("Failed to read file IAMHERE")?;
+    let contents = read_file(path).context("Failed to read file")?;
     Ok(ResponseType::File(file_name, contents))
 }
 

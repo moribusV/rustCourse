@@ -1,4 +1,3 @@
-use anyhow::{Context, Result};
 use clap::Parser;
 use hwork13::{parse_input, parse_socket_addr, send_message, MessageType};
 use std::net::SocketAddr;
@@ -17,20 +16,28 @@ struct Config {
     address: SocketAddr,
 }
 
-fn main() -> Result<()> {
+fn main() {
     tracing_subscriber::fmt::init();
 
     let config = Config::parse();
     let server_addr = &config.address;
-    let mut stream = TcpStream::connect(server_addr).context("Failed to connect to server.")?;
+    let mut stream = match TcpStream::connect(server_addr) {
+        Ok(s) => s,
+        Err(e) => {
+            error!("Failed to connect to {server_addr}: {e}");
+            std::process::exit(1);
+        }
+    };
 
     thread::spawn({
-        let stream = stream
-            .try_clone()
-            .context("Failed to create TCP stream handle copy.")?;
+        let Ok(stream) = stream.try_clone() else {
+            error!("Failed to clone TCP stream.");
+            std::process::exit(1);
+        };
         move || {
             if let Err(e) = handle_server(stream) {
                 error!("Error receiving from server: {:?}", e);
+                std::process::exit(1);
             }
         }
     });
@@ -38,7 +45,9 @@ fn main() -> Result<()> {
     loop {
         match parse_input() {
             Ok(msg) => {
-                send_message(&mut stream, &msg)?;
+                if let Err(e) = send_message(&mut stream, &msg) {
+                    error!("Send message error:{e}");
+                }
                 if let MessageType::Quit = msg {
                     break;
                 }
@@ -46,6 +55,4 @@ fn main() -> Result<()> {
             Err(e) => error!("Failed to parse input: {:?}", e),
         }
     }
-
-    Ok(())
 }
