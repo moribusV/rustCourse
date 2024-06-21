@@ -43,7 +43,6 @@ pub fn handle_client(
         tx.send(res).unwrap();
     }
 
-    clients.lock().unwrap().remove(&addr);
     Ok(())
 }
 
