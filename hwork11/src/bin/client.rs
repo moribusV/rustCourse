@@ -4,6 +4,7 @@ use std::error::Error;
 use std::net::SocketAddr;
 use std::net::TcpStream;
 use std::thread;
+use tracing::error;
 
 #[path = "../client_utils.rs"]
 mod client_utils;
@@ -17,7 +18,8 @@ struct Config {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
+
     let config = Config::parse();
     let server_addr = &config.address;
     let mut stream = TcpStream::connect(server_addr)?;
@@ -26,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let stream = stream.try_clone()?;
         move || {
             if let Err(e) = handle_server(stream) {
-                eprintln!("Error receiving from server: {:?}", e);
+                error!("Error receiving from server: {:?}", e);
             }
         }
     });
@@ -39,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     break;
                 }
             }
-            Err(e) => eprintln!("Failed to parse input: {:?}", e),
+            Err(e) => error!("Failed to parse input: {:?}", e),
         }
     }
 

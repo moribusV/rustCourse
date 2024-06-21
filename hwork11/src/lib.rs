@@ -1,5 +1,3 @@
-//pub mod client_utils;
-
 use bincode::{deserialize, serialize};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::error::Error;
@@ -8,6 +6,7 @@ use std::io::{self, Read, Write};
 use std::net::SocketAddr;
 use std::net::TcpStream;
 use std::str::FromStr;
+use tracing::{error, info};
 
 /// Defines the message types that a client can send to the server.
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,10 +20,10 @@ pub enum MessageType {
 /// Defines the response types that the server can send back to the client.
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ResponseType {
-    File(String, Vec<u8>),  // Response containing a file with its name and content
-    Image(String, Vec<u8>), // Response containing an image with its name and content
-    Text(String),           // Response containing a text message
-    Quit(String),           // Notification of client disconnection
+    File(String, Vec<u8>),
+    Image(String, Vec<u8>),
+    Text(String),
+    Quit(String),
 }
 
 /// Custom error type for message parsing.
@@ -101,20 +100,26 @@ pub fn send_message<T: Serialize>(
     stream.write_all(&len.to_be_bytes())?;
 
     stream.write_all(&serialized)?;
+    info!("Sent message of length {}", len);
     Ok(())
 }
 
 /// Receives a serialized message from a TCP stream.
-pub fn receive_message<T: DeserializeOwned>(stream: &mut TcpStream) -> Result<T, Box<dyn Error>> {
+pub fn receive_message<T: DeserializeOwned + std::fmt::Debug>(
+    stream: &mut TcpStream,
+) -> Result<T, Box<dyn Error>> {
     let mut len_buf = [0u8; 4];
 
     stream.read_exact(&mut len_buf)?;
     let exac_len = u32::from_be_bytes(len_buf) as usize;
+    info!("Expecting to receive message of length {}", exac_len);
 
     let mut message_buf = vec![0u8; exac_len];
     stream.read_exact(&mut message_buf)?;
 
-    deserialize_message(&message_buf)
+    let message = deserialize_message(&message_buf)?;
+    info!("Received message: {:?}", message);
+    Ok(message)
 }
 
 /// Reads and parses user input into a `MessageType`.
@@ -123,13 +128,15 @@ pub fn parse_input() -> Result<MessageType, Box<dyn Error>> {
     println!("Enter: <command> <path_to_file/text>");
 
     if let Err(e) = io::stdin().read_line(&mut input) {
+        error!("Failed to read input: {}", e);
         Err(format!("{e}").into())
     } else {
-        println!("User input: {input}");
+        info!("User input: {}", input.trim());
         input.trim().parse::<MessageType>().map_err(|e| e.into())
     }
 }
 
+/// Parses a socket address from a string.
 pub fn parse_socket_addr(val: &str) -> Result<SocketAddr, String> {
     SocketAddr::from_str(val).map_err(|e| format!("Invalid address: {}. Error: {}", val, e))
 }

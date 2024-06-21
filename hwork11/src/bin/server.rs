@@ -1,13 +1,11 @@
 use clap::Parser;
-use env_logger::Builder;
 use hwork11::{parse_socket_addr, ResponseType};
-use log::{error, info, LevelFilter};
 use std::collections::HashMap;
 use std::error::Error;
-use std::io::Write;
 use std::net::{SocketAddr, TcpListener};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
+use tracing::{error, info};
 
 #[path = "../server_utils.rs"]
 mod server_utils;
@@ -21,18 +19,11 @@ struct Config {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    Builder::new()
-        .filter_level(LevelFilter::Info)
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "[{} {}] {}",
-                record.level(),
-                record.target(),
-                record.args()
-            )
-        })
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_target(false)
         .init();
+
     let config = Config::parse();
     let listener = TcpListener::bind(config.address)?;
     info!("Server running on {}", config.address);

@@ -1,35 +1,31 @@
 use chrono::Local;
 use hwork11::{receive_message, ResponseType};
 use image::{load_from_memory, ImageFormat};
-use log::info;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Write;
 use std::net::TcpStream;
 use std::path::Path;
-
-//use crate::shared::{ResponseType, receive_message};
+use tracing::info;
 
 pub fn handle_server(mut stream: TcpStream) -> Result<(), Box<dyn Error>> {
     loop {
         let response = receive_message::<ResponseType>(&mut stream)?;
 
-        info!("Received from server: {:?}", response);
-
         match response {
             ResponseType::File(name, content) => {
-                println!("Received file with name: {name}");
+                info!("Received file with name: {name}");
                 save_file(&name, &content)?;
             }
             ResponseType::Image(name, img) => {
-                println!("Received image with name: {name}");
+                info!("Received image with name: {name}");
                 save_image(&img)?;
             }
             ResponseType::Text(msg) => {
-                println!("Server: {}", msg);
+                info!("Server: {}", msg);
             }
             ResponseType::Quit(addr) => {
-                println!("{} has disconnected", addr);
+                info!("{} has disconnected", addr);
                 break;
             }
         }
