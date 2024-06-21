@@ -1,7 +1,6 @@
 use clap::Parser;
 use hwork11::{parse_socket_addr, ResponseType};
 use std::collections::HashMap;
-use std::error::Error;
 use std::net::{SocketAddr, TcpListener};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
@@ -18,15 +17,23 @@ struct Config {
     address: SocketAddr,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .with_target(false)
         .init();
 
-    let config = Config::parse();
-    let listener = TcpListener::bind(config.address)?;
-    info!("Server running on {}", config.address);
+    let addr = Config::parse().address;
+    let listener = match TcpListener::bind(addr) {
+        Ok(l) => l,
+
+        Err(e) => {
+            error!("Failed to create TcpListener: {e}");
+            std::process::exit(1);
+        }
+    };
+
+    info!("Server running on {}", addr);
 
     let clients: Clients = Arc::new(Mutex::new(HashMap::new()));
     let (tx, rx): (Sender<ResponseType>, Receiver<ResponseType>) = mpsc::channel();
@@ -41,13 +48,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    for stream in listener.incoming() {
-        let stream = stream?;
-        let addr: SocketAddr = stream.peer_addr()?;
+    for stream in listener.incoming().filter_map(|r| r.ok()) {
+        let Ok(addr) = stream.peer_addr() else {
+            continue;
+        };
+        let Ok(stream_clone) = stream.try_clone() else {
+            continue;
+        };
         let clients = clients.clone();
         let tx = tx.clone();
 
-        clients.lock().unwrap().insert(addr, stream.try_clone()?);
+        clients.lock().unwrap().insert(addr, stream_clone);
 
         std::thread::spawn(move || {
             if let Err(e) = handle_client(stream, addr, clients, tx) {
@@ -55,6 +66,4 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         });
     }
-
-    Ok(())
 }
