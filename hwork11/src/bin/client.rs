@@ -1,5 +1,5 @@
 use clap::Parser;
-use hwork11::{parse_inputt, parse_socket_addr, send_message, MessageType};
+use hwork11::{parse_input, parse_socket_addr, send_message, MessageType};
 use std::error::Error;
 use std::net::SocketAddr;
 use std::net::TcpStream;
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     loop {
-        match parse_inputt() {
+        match parse_input() {
             Ok(msg) => {
                 send_message(&mut stream, &msg)?;
                 if let MessageType::Quit = msg {

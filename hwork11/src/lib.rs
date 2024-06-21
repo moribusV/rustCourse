@@ -118,7 +118,7 @@ pub fn receive_message<T: DeserializeOwned>(stream: &mut TcpStream) -> Result<T,
 }
 
 /// Reads and parses user input into a `MessageType`.
-pub fn parse_inputt() -> Result<MessageType, Box<dyn Error>> {
+pub fn parse_input() -> Result<MessageType, Box<dyn Error>> {
     let mut input = String::new();
     println!("Enter: <command> <path_to_file/text>");
 
