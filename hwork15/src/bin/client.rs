@@ -2,15 +2,13 @@ use anyhow::Result;
 use clap::Parser;
 use hwork15::{parse_input, parse_socket_addr, send_message, MessageType};
 use std::net::SocketAddr;
-use std::sync::Arc;
 use tokio::io::{stdin, AsyncBufReadExt, BufReader};
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
-use tracing::error;
+use tracing::{error, info};
 
 #[path = "../client_utils.rs"]
 mod client_utils;
-use client_utils::handle_server;
+use client_utils::{handle_authentication_or_registration, handle_server};
 
 /// Client configuration
 #[derive(Parser)]
@@ -27,18 +25,18 @@ async fn main() -> Result<()> {
     let server_addr = &config.address;
     let stream = TcpStream::connect(server_addr).await?;
 
-    let (reader, writer) = stream.into_split();
-    let stream_writer_sync = Arc::new(Mutex::new(writer));
-    let stream_writer_clone = stream_writer_sync.clone();
+    let (mut reader, mut writer) = stream.into_split();
+
+    let buf_read_lines = BufReader::new(stdin());
+    let mut lines = buf_read_lines.lines();
+    handle_authentication_or_registration(&mut reader, &mut writer, &mut lines).await?;
+    info!("Authentication successful. I was waiting on you.. Neo.");
 
     let write_task = tokio::spawn(async move {
-        let buf_read_lines = BufReader::new(stdin());
-        let mut lines = buf_read_lines.lines();
         loop {
             match parse_input(&mut lines).await {
                 Ok(msg) => {
-                    let mut stream = stream_writer_clone.lock().await;
-                    if let Err(e) = send_message(&mut *stream, &msg).await {
+                    if let Err(e) = send_message(&mut writer, &msg).await {
                         error!("Send message error: {:?}", e);
                     }
                     if let MessageType::Quit = msg {
@@ -51,9 +49,7 @@ async fn main() -> Result<()> {
     });
 
     let read_task = tokio::spawn(async move {
-        let buf_read_lines = BufReader::new(stdin());
-        let mut lines = buf_read_lines.lines();
-        if let Err(e) = handle_server(reader, &stream_writer_sync.clone(), &mut lines).await {
+        if let Err(e) = handle_server(&mut reader).await {
             error!("Error receiving from server: {:?}", e);
         }
     });

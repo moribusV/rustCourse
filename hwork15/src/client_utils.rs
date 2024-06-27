@@ -3,30 +3,18 @@ use chrono::Local;
 use hwork15::{receive_message, send_message, ResponseType};
 use image::{load_from_memory, ImageFormat};
 use std::path::Path;
-use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-use tokio::sync::Mutex;
 use tokio::task;
 use tokio::{fs, io::BufReader};
 use tracing::{error, info};
 
-pub async fn handle_server(
-    stream_r: OwnedReadHalf,
-    stream_w: &Arc<Mutex<OwnedWriteHalf>>,
-    lines: &mut tokio::io::Lines<BufReader<tokio::io::Stdin>>,
-) -> Result<()> {
-    let stream_reader_sync = Arc::new(Mutex::new(stream_r));
-
-    handle_authentication_or_registration(&stream_reader_sync.clone(), stream_w, lines).await?;
-    info!("Authentication successful. I was waiting on you.. Neo.");
-
+pub async fn handle_server(stream_r: &mut OwnedReadHalf) -> Result<()> {
     loop {
-        let mut stream = stream_reader_sync.lock().await;
-        let response = receive_message::<ResponseType, OwnedReadHalf>(&mut stream)
+        let response = receive_message::<ResponseType, OwnedReadHalf>(stream_r)
             .await
             .context("Failed to receive message")?;
-        drop(stream);
+        // drop(stream);
         match response {
             ResponseType::File(name, content) => {
                 info!("Received file with name: {name}");
@@ -99,8 +87,8 @@ pub async fn save_image(content: &[u8]) -> Result<()> {
 }
 
 pub async fn handle_authentication_or_registration(
-    stream_r: &Arc<Mutex<OwnedReadHalf>>,
-    stream_w: &Arc<Mutex<OwnedWriteHalf>>,
+    stream_r: &mut OwnedReadHalf,
+    stream_w: &mut OwnedWriteHalf,
     lines: &mut tokio::io::Lines<BufReader<tokio::io::Stdin>>,
 ) -> Result<()> {
     loop {
@@ -119,10 +107,8 @@ pub async fn handle_authentication_or_registration(
 
             let auth_message = format!("{} {} {}", command, username, password);
             println!("{auth_message}");
-            let mut writer = stream_w.lock().await;
-            send_message(&mut *writer, &auth_message).await?;
-            let mut stream = stream_r.lock().await;
-            let response: ResponseType = receive_message(&mut *stream).await?;
+            send_message(stream_w, &auth_message).await?;
+            let response: ResponseType = receive_message(stream_r).await?;
             match response {
                 ResponseType::Text(msg)
                     if msg.contains("AUTH OK") || msg.contains("Registration successful") =>
