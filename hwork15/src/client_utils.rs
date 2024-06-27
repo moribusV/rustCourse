@@ -19,7 +19,7 @@ pub async fn handle_server(
     let stream_reader_sync = Arc::new(Mutex::new(stream_r));
 
     handle_authentication_or_registration(&stream_reader_sync.clone(), stream_w, lines).await?;
-    println!("Authentication successful. I was waiting on you.. Neo.");
+    info!("Authentication successful. I was waiting on you.. Neo.");
 
     loop {
         let mut stream = stream_reader_sync.lock().await;

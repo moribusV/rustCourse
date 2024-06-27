@@ -3,7 +3,26 @@ Repository cleaned
 # Application Description:
 Client-server application allows multiple clients to connect to the server. An arbitrary client sends a request to the server, and the server broadcasts corresponding data to all connected participants.
 
+Added registration and authentication for clients.
+SQLite database is used. 
+Client's text messages are saved there bind to client's username.
+During Registration username and hashed password are saved in the database, so that further authentication is possible.
+
+
+
 # Usage
+
+### Create db.sqlite 
+In ./src do: touch db.sqlite
+
+
+As soon as .text command was executed, it's possible too view saved messages in the database.
+
+Do: sqlite3 db.sqlite in command line in ./src.
+
+From sqlite3 command line send queries:
+SELECT * FROM messages;
+SELECT * FROM users;
 
 ### Running the Server
 cargo run --bin server -- --address <ADDRESS:PORT>
