@@ -8,6 +8,7 @@ SQLite database is used.
 Client's text messages are saved there bind to client's username.
 During Registration username and hashed password are saved in the database, so that further authentication is possible.
 
+P.S. Error handling wants further improvement. 
 
 
 # Usage
